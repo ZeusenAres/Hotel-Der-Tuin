@@ -6,16 +6,17 @@ use PDOException;
 class Database
 {
     private string $host = 'localhost';
-    private string $user = 'root';
-    private string $password = '';
+    private string $user = 'HighServe';
+    private string $password = 'ass';
     private string $dbname = 'hotel_der_tuin';
-    protected $conn;
+    private int $port = 3308;
+    protected PDO $conn;
 
     public function __construct()
     {
         try
         {
-            $this->conn = new PDO("mysql:host=$this->host;dbname=$this->dbname;", $this->user, $this->password);
+            $this->conn = new PDO("mysql:server=$this->host;port=$this->port;dbname=$this->dbname", $this->user, $this->password);
         } catch(PDOException $pdoEx)
         {
             die("failed to connect to database $pdoEx");
