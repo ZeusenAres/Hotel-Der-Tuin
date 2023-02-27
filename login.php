@@ -12,7 +12,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
     try
     {
         $user = $credentials->login($_POST['username'], $_POST['password']);
-        $_SESSION['user'] = $user;
+        $_SESSION['username'] = $user;
+        header('Location:home.php');
     }
     catch(\Exception $e)
     {
@@ -27,10 +28,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
         <title>Log in</title>
     </head>
     <body>
-        <?php echo $_SESSION['user'] ?>
         <form action="login.php" method="post">
             <input type="text" placeholder="username" name="username">
-            <input type="text" placeholder="password" name="password">
+            <input type="password" placeholder="password" name="password">
             <input type="submit" value="login" name="submit">
         </form>
     </body>

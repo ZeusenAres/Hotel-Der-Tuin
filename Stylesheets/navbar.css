@@ -1,0 +1,16 @@
+﻿* {
+    padding: 0;
+    margin: 0;
+}
+
+nav {
+    display: flex;
+    background: gray;
+    height: 75px;
+    align-items: center;
+    justify-content: center;
+}
+
+nav * {
+    margin-right: 25px;
+}

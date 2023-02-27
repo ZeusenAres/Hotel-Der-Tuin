@@ -9,6 +9,7 @@ class Database
     private string $user = 'HighServe';
     private string $password = 'ass';
     private string $dbname = 'hotel_der_tuin';
+    protected string $table;
     private int $port = 3308;
     protected PDO $conn;
 
@@ -21,5 +22,15 @@ class Database
         {
             die("failed to connect to database $pdoEx");
         }
+    }
+
+    public function setTable($table) : string
+    {
+        return $this->table = $table;
+    }
+
+    public function getTable() : string
+    {
+        return $this->table;
     }
 }

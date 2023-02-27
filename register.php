@@ -23,10 +23,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
     <title>Log in</title>
 </head>
 <body>
-    <?php $_SESSION['user'] ?>
     <form action="register.php" method="post">
         <input type="text" placeholder="username" name="username" />
-        <input type="text" placeholder="password" name="password" />
+        <input type="password" placeholder="password" name="password" />
         <input type="email" placeholder="e-mailadres" name="email" />
         <input type="submit" value="login" name="submit" />
     </form>

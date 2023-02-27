@@ -3,54 +3,68 @@ require_once('Database.php');
 require_once('UserCredentialsInterface.php');
 class UserCredentialsController extends Database implements UserCredentialsInterface
 {
-    private string $table;
-
     public function __contruct()
     {
         parent::__construct();
     }
 
+    public function getId(string $username) : int
+    {
+        $this->setTable('klanten');
+        if($this->table == 'klanten')
+        {
+            $statement = $this->conn->prepare("SELECT klant_id FROM $this->table WHERE email = :user");
+            $statement->execute(
+                [
+                    'user' => $username
+                ]
+            );
+            $result = $statement->fetch();
+        }
+        return $result['klant_id'];
+    }
+
     public function login(string $username, string $password) : string
     {
         $personalTag = '';
-        switch($this->table)
+        if($this->table == 'medewerkers')
         {
-            case 'medewerkers':
-                $statement = $this->conn->prepare("SELECT * FROM $this->table WHERE gebruikersnaam = :user AND wachtwoord = :pass");
-                $statement->execute(
-                    [
-                        'user' => $username,
-                        'pass' => $password
-                    ]
-                );
-
-                $result = $statement->fetch();
-
-                if($result['gebruikersnaam'] == null && $result['wachtwoord'] == null)
-                {
-                    throw new Exception("Ongeldige gebruikersnaam of wachtwoord");
-                }
-
-                $personalTag = $result['gebruikersnaam'];
-            case 'klanten':
-                $statement = $this->conn->prepare("SELECT * FROM $this->table WHERE email = :user AND wachtwoord = :pass");
-                $statement->execute(
-                    [
-                        'user' => $username,
-                        'pass' => $password
-                    ]
-                );
-
-                $result = $statement->fetch();
-
-                if($result['email'] == null && $result['wachtwoord'] == null)
-                {
-                    throw new Exception("Ongeldige gebruikersnaam of wachtwoord");
-                }
-
-                $personalTag = $result['klant_naam'];
+            $statement = $this->conn->prepare("SELECT * FROM $this->table WHERE gebruikersnaam = :user");
+            $statement->execute(
+                [
+                    'user' => $username
+                ]
+            );
+            $result = $statement->fetch();
+            if($result['gebruikersnaam'] == null)
+            {
+                throw new Exception("Ongeldige gebruikersnaam of wachtwoord");
+            }
+            if(!password_verify($password, $result['wachtwoord']))
+            {
+                throw new Exception("Ongeldige gebruikersnaam of wachtwoord");
+            }
+            $personalTag = $result['gebruikersnaam'];
         }
-
+        if($this->table == 'klanten')
+        {
+            $statement = $this->conn->prepare("SELECT * FROM $this->table WHERE email = :user");
+            $statement->execute(
+                [
+                    'user' => $username
+                ]
+            );
+            $result = $statement->fetch();
+            if($result['email'] == null)
+            {
+                throw new Exception("Ongeldige gebruikersnaam of wachtwoord");
+            }
+            if(!password_verify($password, $result['wachtwoord']))
+            {
+                throw new Exception("Ongeldige gebruikersnaam of wachtwoord");
+            }
+            $personalTag = $result['klant_naam'] . '/' . $result['email'];
+        }
         return $personalTag;
     }
 
@@ -73,7 +87,6 @@ class UserCredentialsController extends Database implements UserCredentialsInter
                 throw new Exception("Gebruiker $username bestaat al");
             }
         }
-
         if($this->table == 'klanten')
         {
             $statement = $this->conn->prepare("SELECT * FROM $this->table WHERE email = :user AND wachtwoord = :pass");
@@ -104,7 +117,6 @@ class UserCredentialsController extends Database implements UserCredentialsInter
                 'pass' => password_hash($entity[2], PASSWORD_DEFAULT)
             ]);
         }
-
         if($this->table == 'klanten')
         {
             $statement = $this->conn->prepare("INSERT INTO $this->table(klant_naam, wachtwoord, klant_tel, email, adres, postcode)
@@ -118,15 +130,5 @@ class UserCredentialsController extends Database implements UserCredentialsInter
                 'postcode' => $entity[5]
             ]);
         }
-    }
-
-    public function setTable($table) : string
-    {
-        return $this->table = $table;
-    }
-
-    public function getTable() : string
-    {
-        return $this->table;
     }
 }

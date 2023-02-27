@@ -12,7 +12,11 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
     try
     {
         $user = $credentials->login($_POST['email'], $_POST['password']);
-        $_SESSION['user'] = $user;
+        $userIds = explode('/', $user);
+        $_SESSION['username'] = $userIds[0];
+        $_SESSION['custMail'] = $userIds[1];
+        header('Location:home.php');
+
     }
     catch(\Exception $e)
     {
@@ -27,10 +31,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
     <title>Log in</title>
 </head>
 <body>
-    <?php echo $_SESSION['user'] ?>
     <form action="loginKlant.php" method="post">
         <input type="text" placeholder="email" name="email" />
-        <input type="text" placeholder="password" name="password" />
+        <input type="password" placeholder="password" name="password" />
         <input type="submit" value="login" name="submit" />
     </form>
 </body>

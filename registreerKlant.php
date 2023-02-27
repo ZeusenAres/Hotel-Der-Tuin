@@ -11,8 +11,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
     }*/
     try
     {
-        $user = $credentials->register($_POST['username'], $_POST['email'], $_POST['password'], $_POST['tel'], $_POST['adres'], $_POST['postcode']);
-        $_SESSION['user'] = $user;
+        $_SESSION['user'] = $credentials->register($_POST['username'], $_POST['email'], $_POST['password'], $_POST['tel'], $_POST['adres'], $_POST['postcode']);
+        header('Location:home.php');
     }
     catch(\Exception $e)
     {
@@ -27,10 +27,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
     <title>Log in</title>
 </head>
 <body>
-    <?php echo $_SESSION['user'] ?>
     <form action="registreerKlant.php" method="post">
         <input type="text" placeholder="username" name="username" />
-        <input type="text" placeholder="password" name="password" />
+        <input type="password" placeholder="password" name="password" />
         <input type="text" placeholder="tel." name="tel" maxlength="10" />
         <input type="text" placeholder="email" name="email" />
         <input type="text" placeholder="adres" name="adres" />
