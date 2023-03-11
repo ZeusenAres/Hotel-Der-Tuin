@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <?php
+    session_start();
+    require_once('Database/UserCredentialsController.php');
+    $credentials = new UserCredentialsController();
+    ?>
     <link rel="stylesheet" href="Stylesheets/navbar.css"/>
     <title>
         homepage
@@ -8,16 +13,10 @@
 </head>
 <body>
     <nav>
-        <a href="contact.php">Contact</a>
-        <a href="loginKlant.php">Login Klant</a>
-        <a href="registreerKlant.php">Registreer Klant</a>
-        <a href="login.php">Login Medewerker</a>
-        <a href="register.php">Registreer Medewerker</a>
+        <?php echo $credentials->navbar(); ?>
     </nav>
-    
     <div>
         <a href="reserveer.php">Reserveer</a><br />
-        <a href="reserveringenOverzicht.php">Reservering Overzicht</a>
     </div>
 </body>
 </html>

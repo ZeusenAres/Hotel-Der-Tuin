@@ -5,10 +5,6 @@ $credentials = new UserCredentialsController();
 $credentials->setTable('klanten');
 if($_SERVER['REQUEST_METHOD'] == 'POST')
 {
-    /*if($credentials->login($_POST['username'], $_POST['password']))
-    {
-    $_SESSION['user'] = $_POST['username'];
-    }*/
     try
     {
         $user = $credentials->login($_POST['email'], $_POST['password']);

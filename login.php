@@ -11,8 +11,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
     }*/
     try
     {
-        $user = $credentials->login($_POST['username'], $_POST['password']);
-        $_SESSION['username'] = $user;
+        $_SESSION['username'] = $credentials->login($_POST['username'], $_POST['password']);;
         header('Location:home.php');
     }
     catch(\Exception $e)

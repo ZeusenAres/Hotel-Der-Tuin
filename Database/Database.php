@@ -28,9 +28,4 @@ class Database
     {
         return $this->table = $table;
     }
-
-    public function getTable() : string
-    {
-        return $this->table;
-    }
 }

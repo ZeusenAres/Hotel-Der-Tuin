@@ -2,11 +2,11 @@
 session_start();
 require_once('Database/UserCredentialsController.php');
 $credentials = new UserCredentialsController();
-$credentials->setTable('medewerkers');
 if($_SERVER['REQUEST_METHOD'] == 'POST')
 {
     try
     {
+        $credentials->setTable('medewerkers');
         $credentials->register($_POST['username'], $_POST['email'], $_POST['password']);
         header('Location:home.php');
     }

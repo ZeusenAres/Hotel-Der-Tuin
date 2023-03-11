@@ -8,12 +8,12 @@ class RoomReservationController extends Database
     public function __construct()
     {
         parent::__construct();
-        $this->setTable('kamers');
         $this->userCredentialsController = new UserCredentialsController();
     }
 
     public function getAllRooms()
     {
+        $this->setTable('kamers');
         $statement = $this->conn->prepare("SELECT * FROM $this->table");
         $statement->execute();
         foreach($statement->fetchAll() as $row)
@@ -22,19 +22,40 @@ class RoomReservationController extends Database
         }
     }
 
-    public function getAvailableRooms()
+    public function getAvailableRooms() : array
     {
-        $statement = $this->conn->prepare("SELECT * FROM $this->table WHERE gereserveerd = false");
+        $this->setTable('kamers');
+        $statement = $this->conn->prepare("SELECT kamernummer FROM $this->table WHERE gereserveerd = false");
         $statement->execute();
-        foreach($statement->fetchAll() as $row)
-        {
-            echo '<option value="' . $row['kamernummer'] . '">' . $row['kamernummer'] . '</option>';
-        }
+        return $statement->fetchAll();
+    }
 
-        if(count($statement->fetchAll()) <= 2)
+    public function deleteReservation(?int $roomNum) : void
+    {
+        if($roomNum != null)
         {
-            echo '<h3 color="red">' . count($statement->fetchAll()) . "kamers beschikbaar</h3>";
+            $this->setTable('reserveringen');
+            $statement = $this->conn->prepare("DELETE FROM $this->table WHERE kamer_nummer = :roomNum");
+            $statement->execute([
+                'roomNum' => $roomNum
+                ]);
+            $this->setReservationStatus(false, $roomNum);
         }
+    }
+
+    private function isDateValid($date) : bool
+    {
+        $currentDate = strtotime(date('y-m-d'));
+        $setDate = strtotime($date);
+        if($setDate <= $currentDate)
+        {
+            throw new Exception('Datum kan niet eerder dan de tegenwoordige tijd');
+        }
+        if($setDate > strtotime('+1 month'))
+        {
+            throw new Exception('Reservering kan alleen tot maximaal 1 maand gemaakt worden');
+        }
+        return true;
     }
 
     private function setReservationStatus(bool $status, int $roomNum) : int
@@ -50,36 +71,57 @@ class RoomReservationController extends Database
 
     public function createReservation(string $customerMail, int $roomNum, $startDate, $endDate) : void
     {
-        $this->setTable('reserveringen');
-        $id = $this->userCredentialsController->getId($customerMail);
-        $this->setTable('reserveringen');
-        $statement = $this->conn->prepare("INSERT INTO $this->table(klant_id, kamer_nummer, begin_datum, eind_datum) VALUES(:id, :roomNum, :start, :end)");
-        $statement->execute([
-            'id' => $id,
-            'roomNum' => $roomNum,
-            'start' => $startDate,
-            'end' => $endDate
-            ]);
-        $this->setReservationStatus(true, $roomNum);
+        if($roomNum == 0)
+        {
+            throw new Exception('Selecteer een kamer');
+        }
+        if($this->isDateValid($startDate) && $this->isDateValid($endDate))
+        {
+            $this->setTable('reserveringen');
+            $id = $this->userCredentialsController->getId($customerMail);
+            $this->setTable('reserveringen');
+            $statement = $this->conn->prepare("INSERT INTO $this->table(klant_id, kamer_nummer, begin_datum, eind_datum) VALUES(:id, :roomNum, :start, :end)");
+            $statement->execute([
+                'id' => $id,
+                'roomNum' => $roomNum,
+                'start' => $startDate,
+                'end' => $endDate
+                ]);
+            $this->setReservationStatus(true, $roomNum);
+        }
     }
 
-    public function getAllReservations()
+    public function getAllReservations() : array
     {
         $this->setTable('reserveringen');
         $statement = $this->conn->prepare("SELECT * FROM $this->table
             INNER JOIN klanten ON reserveringen.klant_id = klanten.klant_id");
         $statement->execute();
-        foreach($statement->fetchAll() as $row)
-        {
-            echo '<tr>
-                <td>' . $row['reservering_nummer'] . '</td>
-                <td>' . $row['klant_naam'] . '</td>
-                <td>' . $row['klant_tel'] . '</td>
-                <td>' . $row['email'] . '</td>
-                <td>' . $row['adres'] . '</td>
-                <td>' . $row['postcode'] . '</td>
-                <td>' . $row['kamer_nummer'] . '</td>
-            </tr>';
-        }
+        return $statement->fetchAll();
+    }
+
+    public function getReservation($roomNum) : array
+    {
+        $this->setTable('reserveringen');
+        $statement = $this->conn->prepare("SELECT * FROM $this->table
+            INNER JOIN klanten ON reserveringen.klant_id = klanten.klant_id WHERE kamer_nummer = :roomNum");
+        $statement->execute([
+            'roomNum' => $roomNum
+            ]);
+        return $statement->fetchAll();
+    }
+
+    public function updateReservation(array $reservation, int $clearedRoom) : void
+    {
+        $this->setTable('reserveringen');
+        $statement = $this->conn->prepare("UPDATE $this->table SET kamer_nummer=:roomNum, begin_datum=:start, eind_datum=:end WHERE kamer_nummer=:clearedRoom");
+        $statement->execute([
+            'clearedRoom' => $clearedRoom,
+            'roomNum' => $reservation['kamer'],
+            'start' => $reservation['begin'],
+            'end' => $reservation['eind']
+            ]);
+        $this->setReservationStatus(true, $reservation['kamer']);
+        $this->setReservationStatus(false, $clearedRoom);
     }
 }

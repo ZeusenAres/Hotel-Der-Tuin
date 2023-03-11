@@ -24,6 +24,70 @@ class UserCredentialsController extends Database implements UserCredentialsInter
         return $result['klant_id'];
     }
 
+    public function getAllCustomers() : array
+    {
+        $this->setTable('klanten');
+        $statement = $this->conn->prepare("SELECT * FROM $this->table");
+        $statement->execute();
+        return $statement->fetchAll();
+    }
+
+    public function getCustomer(int $id) : array
+    {
+        $this->setTable('klanten');
+        $statement = $this->conn->prepare("SELECT * FROM $this->table WHERE klant_id = :id");
+        $statement->execute([
+            'id' => $id
+            ]);
+        return $statement->fetchAll();
+    }
+
+    public function deleteUser(int $id) : void
+    {
+        if($this->table == 'klanten')
+        {
+            $statement = $this->conn->prepare("DELETE FROM $this->table WHERE klant_id = :id");
+            $statement->execute([
+                'id' => $id
+                ]);
+        }
+
+        if($this->table == 'medewerkers')
+        {
+            $statement = $this->conn->prepare("DELETE FROM $this->table WHERE medewerker_id = :id");
+            $statement->execute([
+                'id' => $id
+                ]);
+        }
+    }
+
+    public function updateUser(array $user, int $id) : void
+    {
+        if($this->table == 'klanten')
+        {
+            $statement = $this->conn->prepare("UPDATE $this->table SET klant_naam=:name, klant_tel=:tel, email=:email, adres=:adres, postcode=:zipcode WHERE klant_id=:id");
+            $statement->execute([
+                'id' => $id,
+                'name' => $user['klant_naam'],
+                'tel' => $user['klant_tel'],
+                'email' => $user['email'],
+                'adres' => $user['adres'],
+                'zipcode' => $user['postcode']
+                ]);
+        }
+
+        if($this->table == 'medewerkers')
+        {
+            $statement = $this->conn->prepare("UPDATE $this->table SET gebruikersnaam=:name, wachtwoord=:pass, email=:email WHERE medewerker_id=:id");
+            $statement->execute([
+                'id' => $id,
+                'name' => $user['gebruikersnaam'],
+                'pass' => $user['wachtwoord'],
+                'email' => $user['email']
+                ]);
+        }
+    }
+
     public function login(string $username, string $password) : string
     {
         $personalTag = '';
@@ -130,5 +194,54 @@ class UserCredentialsController extends Database implements UserCredentialsInter
                 'postcode' => $entity[5]
             ]);
         }
+    }
+
+    private function userLoginState() : void
+    {
+        if(empty($_SESSION['username']) && empty($_SESSION['custMail']))
+        {
+            echo '<a href="loginKlant.php">Login Klant</a>
+            <a href="registreerKlant.php">Registreer Klant</a>
+            <a href="login.php">Login Medewerker</a>';
+        }
+        if(!empty($_SESSION['username']) && empty($_SESSION['custMail']))
+        {
+            echo '<h3 class="personal_tag">' . $_SESSION['username'] . '
+                    <div class="profile_actions">
+                        <a href="reserveringenOverzicht.php">Reservering Overzicht</a>
+                    </div>
+                </h3>
+                <form action="#" method="post">
+                    <input type="submit" name="logout"/>
+                </form>';
+            if(isset($_POST['logout']))
+            {
+                unset($_SESSION['username']);
+                header('Location:#');
+            }
+        }
+        if(!empty($_SESSION['username']) && !empty($_SESSION['custMail']))
+        {
+            echo '<h3 class="personal_tag">' . $_SESSION['custMail'] . '
+                    <div class="profile_actions">
+                        <a href="profiel.php">Profiel</a>
+                    </div>
+                </h3>
+                <form action="#" method="post">
+                    <input type="submit" name="logout"/>
+                </form>';
+            if(isset($_POST['logout']))
+            {
+                unset($_SESSION['username']);
+                unset($_SESSION['custMail']);
+                header('Location:#');
+            }
+        }
+    }
+
+    public function navbar() : string
+    {
+        return '<a href="klanten.php">Klanten</a>
+                <a href="contact.php">Contact</a>' . $this->userLoginState();
     }
 }

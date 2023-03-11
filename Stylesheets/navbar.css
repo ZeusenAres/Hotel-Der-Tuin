@@ -14,3 +14,21 @@ nav {
 nav * {
     margin-right: 25px;
 }
+
+.personal_tag {
+    position: relative;
+    display: inline-block;
+}
+
+.profile_actions {
+    display: none;
+    position: absolute;
+    width: 250px;
+    border: solid red;
+    background: gray;
+    z-index: 1;
+}
+
+.personal_tag:hover .profile_actions {
+    display: block;
+}
