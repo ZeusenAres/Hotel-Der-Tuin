@@ -196,6 +196,20 @@ class UserCredentialsController extends Database implements UserCredentialsInter
         }
     }
 
+    public function updateCustomer(array $customerDetails, int $customerId) : void
+    {
+        $this->setTable('klanten');
+        $statement = $this->conn->prepare("UPDATE $this->table SET klant_naam=:name, klant_tel=:tel, email=:email, adres=:adres, postcode=:zipcode WHERE klant_id=:id");
+        $statement->execute([
+            'name' => $customerDetails['custName'],
+            'tel' => $customerDetails['tel'],
+            'email' => $customerDetails['email'],
+            'adres' => $customerDetails['address'],
+            'zipcode' => $customerDetails['zipcode'],
+            'id' => $customerId
+            ]);
+    }
+
     private function userLoginState() : void
     {
         if(empty($_SESSION['username']) && empty($_SESSION['custMail']))
@@ -206,7 +220,8 @@ class UserCredentialsController extends Database implements UserCredentialsInter
         }
         if(!empty($_SESSION['username']) && empty($_SESSION['custMail']))
         {
-            echo '<h3 class="personal_tag">' . $_SESSION['username'] . '
+            echo '<a href="klanten.php">Klanten</a>
+                <h3 class="personal_tag">' . $_SESSION['username'] . '
                     <div class="profile_actions">
                         <a href="reserveringenOverzicht.php">Reservering Overzicht</a>
                     </div>
@@ -225,6 +240,7 @@ class UserCredentialsController extends Database implements UserCredentialsInter
             echo '<h3 class="personal_tag">' . $_SESSION['custMail'] . '
                     <div class="profile_actions">
                         <a href="profiel.php">Profiel</a>
+                        <a href="reservering.php?id=' . $_SESSION['custMail'] . '">Reservering</a>
                     </div>
                 </h3>
                 <form action="#" method="post">
@@ -241,7 +257,8 @@ class UserCredentialsController extends Database implements UserCredentialsInter
 
     public function navbar() : string
     {
-        return '<a href="klanten.php">Klanten</a>
+        return '<link rel="stylesheet" href="Stylesheets/navbar.css"/>
+                <a href="home.php">Home</a>
                 <a href="contact.php">Contact</a>' . $this->userLoginState();
     }
 }

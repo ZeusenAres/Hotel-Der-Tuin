@@ -1,7 +1,9 @@
 <?php
 session_start();
+require_once('Database/UserCredentialsController.php');
 require_once('Database/RoomReservationController.php');
 $roomReservation = new RoomReservationController();
+$credentials = new UserCredentialsController();
 $reservations = $roomReservation->getAllReservations();
 ?>
 
@@ -13,6 +15,7 @@ $reservations = $roomReservation->getAllReservations();
     </title>
 </head>
 <body>
+    <?php echo $credentials->navbar();?>
     <table>
         <tr>
             <td>Reservering Nummer</td>

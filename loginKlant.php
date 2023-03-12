@@ -27,6 +27,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
     <title>Log in</title>
 </head>
 <body>
+    <?php echo $credentials->navbar();?>
     <form action="loginKlant.php" method="post">
         <input type="text" placeholder="email" name="email" />
         <input type="password" placeholder="password" name="password" />

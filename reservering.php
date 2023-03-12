@@ -1,6 +1,8 @@
 <?php
 session_start();
+require_once('Database/UserCredentialsController.php');
 require_once('Database/RoomReservationController.php');
+$credentials = new UserCredentialsController();
 $roomReservation = new RoomReservationController();
 ?>
 
@@ -12,9 +14,18 @@ $roomReservation = new RoomReservationController();
     </title>
 </head>
 <body>
+    <?php echo $credentials->navbar();?>
     <form id="reservering_edit" name="reservering_edit" action="reservering.php" method="post">
         <?php
-        foreach($roomReservation->getReservation($_GET['kamer_reservering']) as $reservation)
+        if(!empty($_GET['kamer_reservering']))
+        {
+            $_SESSION['id'] = ['kamernummer' => $_GET['kamer_reservering']];
+        }
+        if(!empty($_GET['id']))
+        {
+            $_SESSION['id'] = ['custMail' => $_GET['id']];
+        }
+        foreach($roomReservation->getReservation($_SESSION['id']) as $reservation)
         {
             if($_SESSION['kamernummer'] == null || $reservation['kamer_nummer'] != $_SESSION['kamernummer'])
             {
@@ -36,8 +47,15 @@ $roomReservation = new RoomReservationController();
         }
         if($_SERVER['REQUEST_METHOD'] == 'POST')
         {
-            $roomReservation->updateReservation($_POST, $_SESSION['kamernummer']);
-            header('Location: reserveringenOverzicht.php');
+            if(!empty($_SESSION['kamernummer']))
+            {
+                $roomReservation->updateReservation($_POST, $_SESSION['kamernummer']);
+            }
+            if(!empty($_SESSION['custMail']))
+            {
+                $roomReservation->updateReservation($_POST, $_SESSION['kamernummer']);
+            }
+            header('Location: home.php');
         }
         ?>
         <input type="submit" name="submit"/>

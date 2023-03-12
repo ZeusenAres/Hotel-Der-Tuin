@@ -1,7 +1,9 @@
 <?php
 session_start();
+require_once('Database/UserCredentialsController.php');
 require_once('Database/RoomReservationController.php');
 require_once('Database/FactuurPDF.php');
+$credentials = new UserCredentialsController();
 $roomReservation = new RoomReservationController();
 $factuurPDF = new FactuurPDF();
 if($_SERVER['REQUEST_METHOD'] == 'POST')
@@ -11,21 +13,21 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
         if($_SERVER['REQUEST_METHOD'] == 'POST')
         {
             $roomReservation->createReservation($_SESSION['custMail'], $_POST['rooms'], $_POST['startDate'], $_POST['endDate']);
-        }
-        foreach($roomReservation->getReservation($_POST['rooms']) as $reservation)
-        {
-            $factuurPDF->AliasNbPages();
-            $factuurPDF->AddPage();
-            $factuurPDF->SetFont('Times','',14);
-            $factuurPDF->AcceptPageBreak();
-            $factuurPDF->Cell(0, 10, 'Reserveringnummer: ' . $reservation['reservering_nummer'], 0, 1);
-            $factuurPDF->Cell(0, 10, 'Naam: ' . $reservation['klant_naam'], 0, 1);
-            $factuurPDF->Cell(0, 10, 'E-mail: ' . $reservation['email'], 0, 1);
-            $factuurPDF->Cell(0, 10, 'Tel: ' . $reservation['klant_tel'], 0, 1);
-            $factuurPDF->Cell(0, 10, 'Adres: ' . $reservation['adres'], 0, 1);
-            $factuurPDF->Cell(0, 10, 'Postcode: ' . $reservation['postcode'], 0, 1);
-            $factuurPDF->Cell(0, 10, 'Reservering van: ' . $reservation['begin_datum'] . ' tot ' . $reservation['eind_datum'], 0, 1);
-            $factuurPDF->Output();
+            foreach($roomReservation->getReservation($_POST['rooms']) as $reservation)
+            {
+                $factuurPDF->AddPage();
+                $factuurPDF->SetFont('Times','',14);
+                $factuurPDF->AcceptPageBreak();
+                $factuurPDF->Cell(0, 10, 'Reserveringnummer: ' . $reservation['reservering_nummer'], 0, 1);
+                $factuurPDF->Cell(0, 10, 'Naam: ' . $reservation['klant_naam'], 0, 1);
+                $factuurPDF->Cell(0, 10, 'E-mail: ' . $reservation['email'], 0, 1);
+                $factuurPDF->Cell(0, 10, 'Tel: ' . $reservation['klant_tel'], 0, 1);
+                $factuurPDF->Cell(0, 10, 'Adres: ' . $reservation['adres'], 0, 1);
+                $factuurPDF->Cell(0, 10, 'Postcode: ' . $reservation['postcode'], 0, 1);
+                $factuurPDF->Cell(0, 10, 'Reservering van: ' . $reservation['begin_datum'] . ' tot ' . $reservation['eind_datum'], 0, 1);
+                $factuurPDF->Cell(0, 10, 'Kamer: ' . $reservation['kamer_nummer'], 0, 1);
+                $factuurPDF->Output();
+            }
         }
     }
     catch(Exception $e)
@@ -44,6 +46,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
 </head>
 <body>
     <?php
+    echo $credentials->navbar();
     $available = count($roomReservation->getAvailableRooms());
     if($available <= 2)
     {

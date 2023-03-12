@@ -13,6 +13,7 @@ $customers = $credentials->getAllCustomers();
     </title>
 </head>
 <body>
+    <?php echo $credentials->navbar();?>
     <table>
         <tr>
             <td>Klant Nummer</td>

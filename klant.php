@@ -2,7 +2,10 @@
 session_start();
 require_once('Database/UserCredentialsController.php');
 $credentials = new UserCredentialsController();
-$user = $credentials->getCustomer(($_GET['klant_id']));
+if($_GET['klant_id'] != null)
+{
+    $user = $credentials->getCustomer(($_GET['klant_id']));
+}
 ?>
 
 <!DOCTYPE html>
@@ -13,9 +16,10 @@ $user = $credentials->getCustomer(($_GET['klant_id']));
     </title>
 </head>
 <body>
+    <?php echo $credentials->navbar();?>
     <form action="klant.php" method="post">
         <?php
-        foreach($cu as $customer)
+        foreach($user as $customer)
         {
             if($_SESSION['klant_id'] == null || $customer['klant_id'] != $_SESSION['klant_id'])
             {
@@ -31,7 +35,7 @@ $user = $credentials->getCustomer(($_GET['klant_id']));
         }
         if($_SERVER['REQUEST_METHOD'] == 'POST')
         {
-            $roomReservation->updateReservation($_POST, $_SESSION['klant_id']);
+            $credentials->updateCustomer($_POST, $_SESSION['klant_id']);
             header('Location: klanten.php');
         }
         ?>

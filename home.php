@@ -6,7 +6,6 @@
     require_once('Database/UserCredentialsController.php');
     $credentials = new UserCredentialsController();
     ?>
-    <link rel="stylesheet" href="Stylesheets/navbar.css"/>
     <title>
         homepage
     </title>
