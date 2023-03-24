@@ -6,6 +6,10 @@ class UserCredentialsController extends Database implements UserCredentialsInter
     public function __contruct()
     {
         parent::__construct();
+        if(str_contains('reserveer', strtolower(basename($_SERVER['PHP_SELF']))) && empty($_SESSION['username']))
+        {
+            header('Location: home.php');
+        }
     }
 
     public function getId(string $username) : int

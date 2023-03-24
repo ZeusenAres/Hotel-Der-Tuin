@@ -8,7 +8,7 @@ class Database
     private string $host = 'localhost';
     private string $user = 'HighServe';
     private string $password = 'ass';
-    private string $dbname = 'hotel_der_tuin';
+    private string $dbname = 'hotel_ter_duin';
     protected string $table;
     private int $port = 3308;
     protected PDO $conn;

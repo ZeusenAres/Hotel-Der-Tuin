@@ -12,10 +12,10 @@
 </head>
 <body>
     <nav>
-        <?php echo $credentials->navbar(); ?>
+        <?php echo $credentials->navbar();?>
     </nav>
     <div>
-        <a href="reserveer.php">Reserveer</a><br />
+        <a href="reserveer.php">Reserveer</a>
     </div>
 </body>
 </html>

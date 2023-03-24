@@ -43,22 +43,23 @@ class RoomReservationController extends Database
         }
     }
 
+    public function getRoom(string $roomNum) : array
+    {
+        $this->setTable('kamers');
+        $statement = $this->conn->prepare("SELECT * FROM $this->table WHERE kamernummer = :roomNum");
+        $statement->execute([
+            'roomNum' => $roomNum
+            ]);
+        return $statement->fetchAll();
+    }
+
     private function isDateValid($startDate, $endDate) : bool
     {
-        $currentDate = strtotime(date('y-m-d'));
         $startDate = strtotime($startDate);
         $endDate = strtotime($endDate);
-        if($startDate <= $currentDate)
-        {
-            throw new Exception('Datum kan niet eerder dan de tegenwoordige tijd');
-        }
         if($endDate < $startDate)
         {
             throw new Exception('Eind datum kan niet eerder dan start datum');
-        }
-        if($endDate > strtotime('+1 month'))
-        {
-            throw new Exception('Reservering kan alleen tot maximaal 1 maand gemaakt worden');
         }
         return true;
     }
@@ -74,7 +75,7 @@ class RoomReservationController extends Database
         return $roomNum;
     }
 
-    public function createReservation(string $customerMail, int $roomNum, $startDate, $endDate) : void
+    public function createReservation(string $customerMail, int $roomNum, string $startDate, string $endDate) : void
     {
         if($roomNum == 0)
         {
@@ -82,17 +83,22 @@ class RoomReservationController extends Database
         }
         if($this->isDateValid($startDate, $endDate))
         {
-            $this->setTable('reserveringen');
-            $id = $this->userCredentialsController->getId($customerMail);
-            $this->setTable('reserveringen');
-            $statement = $this->conn->prepare("INSERT INTO $this->table(klant_id, kamer_nummer, begin_datum, eind_datum) VALUES(:id, :roomNum, :start, :end)");
-            $statement->execute([
-                'id' => $id,
-                'roomNum' => $roomNum,
-                'start' => $startDate,
-                'end' => $endDate
-                ]);
-            $this->setReservationStatus(true, $roomNum);
+            foreach($this->getRoom($roomNum) as $room)
+            {
+                $id = $this->userCredentialsController->getId($customerMail);
+                $durationOfStay = round((strtotime($endDate) - strtotime($startDate)) / 86400);
+                $totalPrice = $room['prijs_per_nacht'] * $durationOfStay;
+                $this->setTable('reserveringen');
+                $statement = $this->conn->prepare("INSERT INTO $this->table(klant_id, kamer_nummer, totaal_prijs, verblijfsduur, begin_datum, eind_datum) VALUES(:id, :roomNum, :total, :stay, :start, :end)");
+                $statement->bindParam('id', $id, PDO::PARAM_INT);
+                $statement->bindParam('roomNum', $roomNum, PDO::PARAM_INT);
+                $statement->bindParam('total', $totalPrice);
+                $statement->bindParam('stay', $durationOfStay, PDO::PARAM_INT);
+                $statement->bindParam('start', $startDate, PDO::PARAM_STR);
+                $statement->bindParam('end', $endDate, PDO::PARAM_STR);
+                $statement->execute();
+                $this->setReservationStatus(true, $roomNum);
+            }
         }
     }
 
@@ -101,8 +107,11 @@ class RoomReservationController extends Database
         $this->setTable('reserveringen');
         $statement = $this->conn->prepare("SELECT * FROM $this->table
             INNER JOIN klanten ON reserveringen.klant_id = klanten.klant_id");
+        $statement2 = $this->conn->prepare("SELECT * FROM $this->table
+            INNER JOIN kamers ON reserveringen.kamer_nummer = kamers.kamernummer");
         $statement->execute();
-        return $statement->fetchAll();
+        $statement2->execute();
+        return array_merge($statement->fetchAll(), $statement2->fetchAll());;
     }
 
     public function getReservation(array $id) : array
@@ -111,10 +120,13 @@ class RoomReservationController extends Database
         {
             $this->setTable('reserveringen');
             $statement = $this->conn->prepare("SELECT * FROM $this->table
-            INNER JOIN klanten ON reserveringen.klant_id = klanten.klant_id WHERE kamer_nummer = :roomNum");
+            INNER JOIN klanten ON reserveringen.klant_id = klanten.klant_id
+            INNER JOIN kamers ON kamers.kamernummer
+            WHERE `kamer_nummer` = :roomNum");
             $statement->execute([
                 'roomNum' => $id['kamernummer']
                 ]);
+
         }
         if(!empty($id['custMail']))
         {
